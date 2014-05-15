@@ -61,10 +61,10 @@ class Processor
      *
      * $key example: "article.title"
      *
-     * @param string $title
-     * @param string $key
-     * @param array $options
-     * @param array $params
+     * @param  string $title
+     * @param  string $key
+     * @param  array  $options
+     * @param  array  $params
      * @return array
      */
     public function sortable($pagination, $title, $key, $options = array(), $params = array())
@@ -143,10 +143,10 @@ class Processor
      *
      * $key example: "article.title"
      *
-     * @param string $title
-     * @param string $key
-     * @param array $options
-     * @param array $params
+     * @param  string $title
+     * @param  string $key
+     * @param  array  $options
+     * @param  array  $params
      * @return array
      */
     public function filter($pagination, array $fields, $options = array(), $params = array())

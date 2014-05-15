@@ -76,7 +76,7 @@ class SlidingPagination extends AbstractPagination
     /**
      * Get url query with all parameters
      *
-     * @param array $additionalQueryParams
+     * @param  array $additionalQueryParams
      * @return array - list of query parameters
      */
     public function getQuery(array $additionalQueryParams = array())
@@ -91,7 +91,7 @@ class SlidingPagination extends AbstractPagination
         return isset($params[$this->getPaginatorOption('sortFieldParameterName')]) && $params[$this->getPaginatorOption('sortFieldParameterName')] === $key;
     }
 
-    public function getDirection ()
+    public function getDirection()
     {
         return $this->params[$this->getPaginatorOption('sortDirectionParameterName')];
     }

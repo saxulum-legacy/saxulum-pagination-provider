@@ -15,10 +15,20 @@ class SaxulumPaginationProvider
     public function register(\Pimple $container)
     {
         $container['knp_paginator.default_options'] = array(
-            'defaultPaginationTemplate' => '@SaxulumPaginationProvider/sliding.html.twig',
-            'defaultSortableTemplate' => '@SaxulumPaginationProvider/sortable_link.html.twig',
-            'defaultFiltrationTemplate' => '@SaxulumPaginationProvider/filtration.html.twig',
-            'defaultPageRange' => 5,
+            'defaultPaginationOptions' => array(
+                'pageParameterName' => 'page',
+                'sortFieldParameterName' => 'sort',
+                'sortDirectionParameterName' => 'direction',
+                'filterFieldParameterName' => 'filterField',
+                'filterValueParameterName' => 'filterValue',
+                'distinct' => true,
+            ),
+            'subscriberOptions' => array(
+                'defaultPaginationTemplate' => '@SaxulumPaginationProvider/sliding.html.twig',
+                'defaultSortableTemplate' => '@SaxulumPaginationProvider/sortable_link.html.twig',
+                'defaultFiltrationTemplate' => '@SaxulumPaginationProvider/filtration.html.twig',
+                'defaultPageRange' => 5,
+            )
         );
 
         $container['knp_paginator.options.initializer'] = $container->protect(function () use ($container) {
@@ -38,11 +48,18 @@ class SaxulumPaginationProvider
             );
         });
 
-        $container['knp_paginator'] = $container->share(function() use($container) {
-            return new Paginator($container['dispatcher']);
+        $container['knp_paginator'] = $container->share(function () use ($container) {
+            $container['knp_paginator.options.initializer']();
+
+            $paginator = new Paginator($container['dispatcher']);
+            $paginator->setDefaultPaginatorOptions(
+                $container['knp_paginator.options']['defaultPaginationOptions']
+            );
+
+            return $paginator;
         });
 
-        $container['knp_paginator.processor'] = $container->share(function() use($container) {
+        $container['knp_paginator.processor'] = $container->share(function () use ($container) {
             return new Processor(
                 $container['url_generator'],
                 $container['translator']
@@ -50,12 +67,12 @@ class SaxulumPaginationProvider
         });
 
         $container['dispatcher'] = $container->share(
-            $container->extend('dispatcher', function(EventDispatcherInterface $dispatcher) use ($container){
+            $container->extend('dispatcher', function (EventDispatcherInterface $dispatcher) use ($container) {
 
                 $container['knp_paginator.options.initializer']();
 
                 $slidingPaginationSubscriber = new SlidingPaginationSubscriber(
-                    $container['knp_paginator.options']
+                    $container['knp_paginator.options']['subscriberOptions']
                 );
 
                 $dispatcher->addListener('kernel.request', array(
@@ -71,7 +88,7 @@ class SaxulumPaginationProvider
         );
 
         $container['twig'] = $container->share(
-            $container->extend('twig', function(\Twig_Environment $twig) use ($container){
+            $container->extend('twig', function (\Twig_Environment $twig) use ($container) {
                 $twig->addExtension(new PaginationExtension($container['knp_paginator.processor']));
 
                 return $twig;
