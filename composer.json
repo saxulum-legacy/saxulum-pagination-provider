@@ -24,6 +24,6 @@
         "silex/silex": "~1.2"
     },
     "autoload": {
-        "psr-0": { "Saxulum\\PaginationProvider": "src/" }
+        "psr-4": { "Saxulum\\PaginationProvider\\": "src/" }
     }
 }
