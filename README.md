@@ -18,7 +18,7 @@
 
  * php: >=5.3.3,
  * knplabs/knp-components: ~1.2,>=1.2.5,
- * pimple/pimple: ~1.1,
+ * pimple/pimple: >=2.1,4,
  * symfony/http-kernel: ~2.3,
  * symfony/translation: ~2.3,
  * twig/twig: ~1.2
