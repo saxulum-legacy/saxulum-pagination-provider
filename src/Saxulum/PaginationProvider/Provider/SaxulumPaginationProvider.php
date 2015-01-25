@@ -5,14 +5,16 @@ namespace Saxulum\PaginationProvider\Provider;
 use Knp\Component\Pager\Event\Subscriber\Paginate\PaginationSubscriber;
 use Knp\Component\Pager\Event\Subscriber\Sortable\SortableSubscriber;
 use Knp\Component\Pager\Paginator;
+use Pimple\Container;
+use Pimple\ServiceProviderInterface;
 use Saxulum\PaginationProvider\Helper\Processor;
 use Saxulum\PaginationProvider\Subscriber\SlidingPaginationSubscriber;
 use Saxulum\PaginationProvider\Twig\PaginationExtension;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class SaxulumPaginationProvider
+class SaxulumPaginationProvider implements ServiceProviderInterface
 {
-    public function register(\Pimple $container)
+    public function register(Container $container)
     {
         $container['knp_paginator.default_options'] = array(
             'defaultPaginationOptions' => array(
@@ -48,7 +50,7 @@ class SaxulumPaginationProvider
             );
         });
 
-        $container['knp_paginator'] = $container->share(function () use ($container) {
+        $container['knp_paginator'] = function () use ($container) {
             $container['knp_paginator.options.initializer']();
 
             $paginator = new Paginator($container['dispatcher']);
@@ -57,50 +59,46 @@ class SaxulumPaginationProvider
             );
 
             return $paginator;
-        });
+        };
 
-        $container['knp_paginator.processor'] = $container->share(function () use ($container) {
+        $container['knp_paginator.processor'] = function () use ($container) {
             return new Processor(
                 $container['url_generator'],
                 $container['translator']
             );
+        };
+
+        $container['dispatcher'] = $container->extend('dispatcher', function (EventDispatcherInterface $dispatcher) use ($container) {
+            $container['knp_paginator.options.initializer']();
+
+            $slidingPaginationSubscriber = new SlidingPaginationSubscriber(
+                $container['knp_paginator.options']['subscriberOptions']
+            );
+
+            $dispatcher->addListener('kernel.request', array(
+                $slidingPaginationSubscriber, 'onKernelRequest'
+            ));
+
+            $dispatcher->addSubscriber(new PaginationSubscriber());
+            $dispatcher->addSubscriber(new SortableSubscriber());
+            $dispatcher->addSubscriber($slidingPaginationSubscriber);
+
+            return $dispatcher;
         });
 
-        $container['dispatcher'] = $container->share(
-            $container->extend('dispatcher', function (EventDispatcherInterface $dispatcher) use ($container) {
+        $container['twig'] = $container->extend('twig', function (\Twig_Environment $twig) use ($container) {
+            $twig->addExtension(new PaginationExtension($container['knp_paginator.processor']));
 
-                $container['knp_paginator.options.initializer']();
+            return $twig;
+        });
 
-                $slidingPaginationSubscriber = new SlidingPaginationSubscriber(
-                    $container['knp_paginator.options']['subscriberOptions']
-                );
-
-                $dispatcher->addListener('kernel.request', array(
-                    $slidingPaginationSubscriber, 'onKernelRequest'
-                ));
-
-                $dispatcher->addSubscriber(new PaginationSubscriber());
-                $dispatcher->addSubscriber(new SortableSubscriber());
-                $dispatcher->addSubscriber($slidingPaginationSubscriber);
-
-                return $dispatcher;
-            })
-        );
-
-        $container['twig'] = $container->share(
-            $container->extend('twig', function (\Twig_Environment $twig) use ($container) {
-                $twig->addExtension(new PaginationExtension($container['knp_paginator.processor']));
-
-                return $twig;
-            })
-        );
-
-        $container['twig.loader.filesystem'] = $container->share($container->extend('twig.loader.filesystem',
+        $container['twig.loader.filesystem'] = $container->extend(
+            'twig.loader.filesystem',
             function (\Twig_Loader_Filesystem $twigLoaderFilesystem) {
                 $twigLoaderFilesystem->addPath(__DIR__. '/../Resources/views', 'SaxulumPaginationProvider');
 
                 return $twigLoaderFilesystem;
             }
-        ));
+        );
     }
 }
