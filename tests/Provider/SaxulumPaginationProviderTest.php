@@ -4,9 +4,9 @@ namespace Saxulum\Tests\PaginationProvider\Provider;
 
 use Pimple\Container;
 use Saxulum\PaginationProvider\Provider\SaxulumPaginationProvider;
+use Silex\Provider\HttpKernelServiceProvider;
 use Silex\Provider\LocaleServiceProvider;
 use Silex\Provider\TranslationServiceProvider;
-use Silex\Provider\KernelServiceProvider;
 use Silex\Provider\RoutingServiceProvider;
 use Silex\Provider\TwigServiceProvider;
 use Symfony\Component\Routing\RouteCollection;
@@ -16,12 +16,14 @@ class SaxulumPaginationProviderTest extends \PHPUnit_Framework_TestCase
     public function testProvider()
     {
         $container = new Container();
+        $container['debug'] = true;
+        $container['charset'] = 'utf-8';
 
         $container['routes'] = function () {
             return new RouteCollection();
         };
 
-        $container->register(new KernelServiceProvider());
+        $container->register(new HttpKernelServiceProvider());
         $container->register(new RoutingServiceProvider());
         $container->register(new LocaleServiceProvider());
         $container->register(new TwigServiceProvider());
