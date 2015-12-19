@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3,<8.0",
+        "php": ">=5.5.9,<8.0",
         "knplabs/knp-components": "~1.2,>=1.2.5",
         "pimple/pimple": ">=2.1,<4",
         "symfony/http-kernel": "~2.3|~3.0",
